@@ -4,7 +4,9 @@
  * - dynamically sized svg (with limits!)
  * - true integers on the x attr, that aren't rounded incorrectly because of uninterpolate,
  *   when quantitivescae.rangeRounding kicks your ass with anti-aliasing
- *   and you're about to ragequit
+ *   and you're about to ragequit.
+ * 
+ *  Sorry it's not generalized. maybe someday
  */
 
 var vizlib = new (function () {
