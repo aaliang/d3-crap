@@ -4,9 +4,7 @@
  * - dynamically sized svg (with limits!)
  * - true integers on the x attr, that aren't rounded incorrectly because of uninterpolate,
  *   when quantitivescae.rangeRounding kicks your ass with anti-aliasing
- *   and you're about to ragequit.
- * 
- *  Sorry it's not generalized. maybe someday
+ *   and you're about to ragequit
  */
 
 var vizlib = new (function () {
@@ -14,11 +12,10 @@ var vizlib = new (function () {
   var VizLibrary = function () {
     var self = this;
 
-    var TARGET_WIDTH = 1170;
+    var TARGET_WIDTH = 1220;
         MIN_BAND_WIDTH = 2; //px
         MIN_PADDING_WIDTH = 1,
-        OUTER_BAND_PADDING = 0,
-        MAX_TICKS_X= 25;
+        OUTER_BAND_PADDING = 0;
 
 
     self.calcLen = function (data_length, band_width, margin) {
@@ -100,7 +97,8 @@ var vizlib = new (function () {
 
       var xAxis = d3.svg.axis()
           .scale(x)
-          .orient("bottom");
+          .orient("bottom")
+          .ticks(20);
 
       var yAxis = d3.svg.axis()
           .scale(y)
@@ -111,37 +109,27 @@ var vizlib = new (function () {
 
       x.interpolate(function (a, b) {
 
-        //TODO: must be generalized
-        // var vstatus = 3/b, // whole number t
         var vstatus = (bandSize+1)/b,
             epsil = 1/(x.domain()[1] - x.domain()[0]);
-            //epsil = 0.001996007984031936; //the t corresponding to x(1) (stepsize)
 
         return function (t) {
-
-          t = (t/epsil) * vstatus;
-
-          console.log(a * (1 - t) + b * t);
-          return a * (1 - t) + b * t;
+          var t0 = (t/epsil) * vstatus;
+          return a * (1 - t0) + b * t0;
         }
       });
 
-
-      var del = Math.floor(x.domain().length/MAX_TICKS_X);
 
       var chart = d3.select(".chart")
           .attr("width", width + margin.left + margin.right)
           .attr("height", height + margin.top + margin.bottom)
         .append("g")
-          .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+          .attr("transform", "translate(" + margin.left + "," + margin.top + ")")
+          .style("pointer-events", "all")
 
-      var _xAxis = xAxis.tickValues(x.domain().filter(function(d, i){
-        return !(i % del);
-      }))
       chart.append("g")
           .attr("class", "x axis")
           .attr("transform", "translate(0," + height + ")")
-          .call(_xAxis);
+          .call(xAxis);
 
       chart.append("g")
           .attr("class", "y axis")
@@ -182,9 +170,20 @@ var vizlib = new (function () {
             return y(d.freq * norm_factor);
             });
 
+      var focus = chart.append("g")
+          .style("display", "none");
+
+        // append the circle at the intersection
+      focus.append("circle")
+          .attr("class", "y")
+          .style("fill", "none")
+          .style("stroke", "blue")
+          .attr("r", 4);
+
       chart.append("path")
         .attr("class", "line")
-        .attr("d", valueline(integralData));
+        .attr("d", valueline(integralData))
+
     };
 
     self.makeBarChart = function (data_uri, settings) {
